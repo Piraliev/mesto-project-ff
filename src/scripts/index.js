@@ -1,7 +1,7 @@
 import '../pages/index.css';
 import { initialCards } from '../data/cards.js';
 import { createCard, addLikeToCard } from './card.js';
-import { openModal, closeModal } from './modal.js';
+import { openModal, closeModal, handleEscKeyUp } from './modal.js';
 
 // @todo: DOM узлы
 const cardPlace = document.querySelector('.places__list');
@@ -22,19 +22,14 @@ const renderCards = () => {
     const cardTemplateClone = cardTemplateContent.cloneNode(true);
     return createCard(element, openImagePopupHandler, addLikeToCard, cardTemplateClone)
   });
+  
   cardPlace.replaceChildren();
   cardsList.forEach((element) => {
     cardPlace.append(element);
   })
 }
 
-//Функция обработки Esc
-function handleEscKeyUp(esc) {
-  if (esc.key === "Escape") {
-    const openedPopup = document.querySelector('.popup_is-opened');
-    closeModal(openedPopup, handleEscKeyUp);
-  }
-}
+
 
 //Функция обработки открытия редактирования профиля
 const onEditProfileButtonClick = () => {
@@ -45,7 +40,6 @@ const onEditProfileButtonClick = () => {
 
   nameInput.value = profileName;
   jobInput.value = profileDescription;
-
   formElement.addEventListener('submit', onSaveProfileButtonClick, {once: true});
 }
 
@@ -82,6 +76,12 @@ const onAddNewCardButtonClick = () => {
   openModal(popupTypeNewCard, handleEscKeyUp);
 
   const popupForm = popupTypeNewCard.querySelector('.popup__form');
+  const titleInput = popupTypeNewCard.querySelector('.popup__input_type_card-name');
+  const urlInput = popupTypeNewCard.querySelector('.popup__input_type_url');
+  
+  titleInput.value = '';
+  urlInput.value = '';
+
   popupForm.addEventListener('submit', onSaveNewCardButtonClick, {once: true});
 }
 
@@ -99,6 +99,7 @@ const onSaveNewCardButtonClick = (event) => {
   }
 
   initialCards.unshift(newCard);
+  
   renderCards();
   titleInput.value = '';
   urlInput.value = '';
