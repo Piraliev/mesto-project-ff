@@ -1,28 +1,22 @@
 //Функция открытия модального окна
-const openModal = (modal, handleEscKeyUp) => {
-  const popupCloseButton = modal.querySelector('.popup__close');
-  
+const openModal = (modal) => {
   modal.classList.add('popup_is-opened');
 
   document.addEventListener('keydown', handleEscKeyUp);
-  popupCloseButton.addEventListener('click', () => closeModal(modal));
-  handleOverlayClick(modal);
 }
 
 //Функция закрытия модального окна
-const closeModal = (modal, handleEscKeyUp) => {
-  const popupCloseButton = modal.querySelector('.popup__close');
-
+const closeModal = (modal) => {
   modal.classList.remove('popup_is-opened');
+
   document.removeEventListener('keydown', handleEscKeyUp);
-  popupCloseButton.removeEventListener('click', closeModal);
 }
 
 //Функция обработки Esc
 const handleEscKeyUp = (esc) => {
   if (esc.key === "Escape") {
     const openedPopup = document.querySelector('.popup_is-opened');
-    closeModal(openedPopup, handleEscKeyUp);
+    closeModal(openedPopup);
   }
 };
 
@@ -35,4 +29,4 @@ const handleOverlayClick = (modal) => {
   });
 }  
   
-export { openModal, closeModal, handleEscKeyUp };
+export { openModal, closeModal, handleEscKeyUp, handleOverlayClick };
