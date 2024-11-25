@@ -22,25 +22,6 @@ const editProfileButton = document.querySelector('.profile__edit-button');
 const addCardButton = document.querySelector('.profile__add-button');
 const popups = document.querySelectorAll('.popup');
 
-const songs = [
-  {
-    title: 'Вектора',
-    artist: 'OZORA' 
-  },
-  {
-    title: 'Страшно',
-    artist: 'Shortparis'
-  },
-  {
-    title: 'Ariadna',
-    artist: 'Kedr Livansky'
-  }
-];
-
-const songsJSON = JSON.stringify(songs);
-
-console.log(songs);
-
 // @todo: Вывести карточки на страницу
 const renderCards = () => {
   const cardsList = initialCards.map((element) => {
