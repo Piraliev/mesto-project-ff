@@ -26,6 +26,7 @@ const inputUrlUpdateAvatar = popupUpdateAvatar.querySelector('.popup__input_avat
 const avatarButton = document.querySelector('.profile__image-button');
 const editProfileButton = document.querySelector('.profile__edit-button');
 const addCardButton = document.querySelector('.profile__add-button');
+const profileImage = document.querySelector('.profile__image');
 const validationConfigObject = {
   formSelector: '.popup__form',
   inputSelector: '.popup__input',
@@ -99,7 +100,7 @@ const onAddNewCardButtonClick = () => {
   openModal(popupTypeNewCard);
   const saveButton = popupTypeNewCard.querySelector('.popup__button');
 
-  saveButton.textContent = 'Сохранить';
+  saveButton.textContent = 'Создать';
 
   clearValidation(formElementNewCard, validationConfigObject);
   formElementNewCard.reset();
@@ -118,7 +119,7 @@ const onSaveNewCardButtonClick = async (event) => {
   const newCard = await uploadNewCard(titleInputValue, urlInputValue);
   const userId = newCard.owner._id;
 
-  cardPlace.prepend(createCard(newCard, openImagePopupHandler, addLikeToCard, userId));
+  cardPlace.prepend(createCard(newCard, openImagePopupHandler, switchLikeOnCard, userId));
   formElementNewCard.reset();
   clearValidation(formElementNewCard, validationConfigObject);
   closeModal(popupTypeNewCard);
@@ -135,7 +136,7 @@ const onSaveNewAvatarButtonClick = async (event) => {
   saveButton.textContent = 'Сохранение...';
 
   const avatarLink = uploadNewAvatarResponse.avatar;
-  document.querySelector('.profile__image').setAttribute('style', `background-image: url(${avatarLink})`);
+  profileImage.setAttribute('style', `background-image: url(${avatarLink})`);
   formElementNewAvatar.reset();
   clearValidation(formElementNewAvatar, validationConfigObject);
   closeModal(popupUpdateAvatar);
@@ -167,9 +168,9 @@ const popupList = document.querySelectorAll('.popup');
 
 Promise.all([getUserProfile(), getCardList()])
   .then(([resUserProfile, resCardList]) => {
-    document.querySelector('.profile__image').setAttribute('style', `background-image: url(${resUserProfile.avatar})`);
-    document.querySelector('.profile__title').textContent = resUserProfile.name;
-    document.querySelector('.profile__description').textContent = resUserProfile.about;
+    profileImage.setAttribute('style', `background-image: url(${resUserProfile.avatar})`);
+    profileName.textContent = resUserProfile.name;
+    profileDescription.textContent = resUserProfile.about;
     
     renderCards(resCardList, resUserProfile);
   })

@@ -34,8 +34,8 @@ export const getCardList = () => {
 };
 
 //Отправка отредактированных данных о профиле
-export const updateUserProfile = async (newName, newAbout) => {
-  const response = await fetch(`${config.baseUrl}/users/me`, {
+export const updateUserProfile = (newName, newAbout) => {
+  return fetch(`${config.baseUrl}/users/me`, {
     method: 'PATCH',
     headers: config.headers,
     body: JSON.stringify({
@@ -43,12 +43,17 @@ export const updateUserProfile = async (newName, newAbout) => {
       about: newAbout
     })
   })
-  return response.json();
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  });
 }; 
 
 //Отправка новой карточки на сервер
-export const uploadNewCard = async (cardName, cardLink) => {
-  const response = await fetch(`${config.baseUrl}/cards`, {
+export const uploadNewCard = (cardName, cardLink) => {
+ return fetch(`${config.baseUrl}/cards`, {
     method: 'POST',
     headers: config.headers,
     body: JSON.stringify({
@@ -56,46 +61,72 @@ export const uploadNewCard = async (cardName, cardLink) => {
       link: cardLink
     })
   })
-  return response.json();
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  });
 };
 
 //Обновление аватара
-export const uploadNewAvatar = async (avatarLink) => {
-  const response = await fetch(`${config.baseUrl}/users/me/avatar`, {
+export const uploadNewAvatar = (avatarLink) => {
+  return fetch(`${config.baseUrl}/users/me/avatar`, {
     method: 'PATCH',
     headers: config.headers, 
     body: JSON.stringify({
       avatar: avatarLink
     })
   })
-  return response.json();
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  });
 };
 
 //Удаление карточки с сервера
-export const deleteCardFromServer = ((cardId) => {
-  fetch(`${config.baseUrl}/cards/${cardId}`, {
+export const deleteCardFromServer = (cardId) => {
+  return fetch(`${config.baseUrl}/cards/${cardId}`, {
     method: 'DELETE',
     headers: config.headers
   })
-});
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  });
+};
 
 //Постановка лайка
-export const putLike = ((cardId, likesCount) => {
-  fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+export const putLike = (cardId, likesCount) => {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: 'PUT',
     headers: config.headers
   })
-    .then(res => res.json())
-    .then(res => likesCount.textContent = res.likes.length);
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  })
+  .then(res => likesCount.textContent = res.likes.length);
     
-});
+};
 
 //Удаление лайка
-export const takeOffLike = ((cardId, likesCount) => {
-  fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
+export const takeOffLike = (cardId, likesCount) => {
+  return fetch(`${config.baseUrl}/cards/likes/${cardId}`, {
     method: 'DELETE',
     headers: config.headers
   })
-    .then(res => res.json())
-    .then(res => likesCount.textContent = res.likes.length);
-});
+  .then(res => {
+    if (res.ok) {
+      return res.json();
+    }
+    return Promise.reject(`Ошибка: ${res.status}`);
+  })
+  .then(res => likesCount.textContent = res.likes.length);
+};
