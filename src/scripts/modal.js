@@ -1,7 +1,6 @@
 //Функция открытия модального окна
 const openModal = (modal) => {
   modal.classList.add('popup_is-opened');
-
   document.addEventListener('keydown', handleEscKeyUp);
 }
 

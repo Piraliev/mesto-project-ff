@@ -1,0 +1,15 @@
+.popup__input_type_error {
+  border-bottom-color: red;
+}
+
+.popup__error {
+  display: block;
+  height: 25px;
+  visibility: hidden;
+  font-size: 12px;
+  color: red;
+}
+
+.popup__error_visible {
+  visibility: visible;
+}
