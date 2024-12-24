@@ -1,7 +1,9 @@
 import { openModal, closeModal } from "./modal.js";
-import { putLike, takeOffLike, deleteCardFromServer } from "./api.js";
+import { putLike, takeOffLike, deleteCardFromServer, handleResponseError } from "./api.js";
 
 const cardTemplate = document.querySelector('#card-template');
+const cardDeleteModal = document.querySelector('.popup_delete-card');
+const submitModalButton = cardDeleteModal.querySelector('.popup__button');
 const cardTemplateContent = cardTemplate.content;
 
 // @todo: Функция создания карточки
@@ -36,8 +38,9 @@ function createCard(element, openImageHandler, likeCardHandler, userId) {
   likesCount.textContent = element.likes.length;
 
   deleteButton.addEventListener('click', () =>  {
-    const cardId = element._id;
-    deleteCard(cardElement, cardId);
+    openModal(cardDeleteModal);
+    submitModalButton.textContent = 'Да';
+    cardDeleteModal.onsubmit = (event) => deleteCard(event, element, cardElement);
   });
 
   cardImage.addEventListener('click', openImageHandler);
@@ -49,33 +52,39 @@ function createCard(element, openImageHandler, likeCardHandler, userId) {
 }
 
 // @todo: Функция удаления карточки
-function deleteCard(card, cardId) {
-  const cardModal = document.querySelector('.popup_delete-card');
-  const deleteButton = cardModal.querySelector('.popup__button');
-  const saveButton = cardModal.querySelector('.popup__button');
+function deleteCard(event, card, cardElement) {
+  event.preventDefault();
 
-  openModal(cardModal);
-  deleteButton.addEventListener('click', (event) => {
-    event.preventDefault();
-
-    saveButton.textContent = 'Удаление...';
-    deleteCardFromServer(cardId);
-    card.remove();
-    closeModal(cardModal);
-  });
-  
+  deleteCardFromServer(card._id)
+    .then(() => {
+      closeModal(cardDeleteModal);
+      cardElement.remove();
+    })
+    .catch(err => handleResponseError(err))
+    .finally(() => {
+      submitModalButton.textContent = 'Удаление...';
+    })
 }
 
 //Функция управления лайком карточки
-const switchLikeOnCard = (event, card, likesCount) => {
+const likeCardHandler = (event, card, likesCount) => {
+  const likeButton = event.target;
   const cardId = card._id;
-  event.target.classList.toggle('card__like-button_is-active');
-  
-  if (event.target.classList.contains('card__like-button_is-active')) {
-    putLike(cardId, likesCount);
+  if (likeButton.classList.contains('card__like-button_is-active')) {
+    takeOffLike(cardId)
+      .then((res) => {
+        likeButton.classList.remove('card__like-button_is-active')
+        likesCount.textContent = res.likes.length
+      })
+      .catch(err => handleResponseError(err))
   } else {
-    takeOffLike(cardId, likesCount);
+    putLike(cardId)
+      .then((res) => {
+        likeButton.classList.add('card__like-button_is-active')
+        likesCount.textContent = res.likes.length
+      })
+      .catch(err => handleResponseError(err))
   }
 }
 
-export { createCard, deleteCard, switchLikeOnCard };
+export { createCard, deleteCard, likeCardHandler };

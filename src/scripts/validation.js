@@ -1,19 +1,19 @@
 //Функция активации обработки валидации форм
-const enableValidation = (validationConfigObject) => { 
-  const formList = document.querySelectorAll(validationConfigObject.formSelector);
+const enableValidation = (validationConfig) => { 
+  const formList = document.querySelectorAll(validationConfig.formSelector);
 
   formList.forEach((form) => {
-    const inputList = form.querySelectorAll(validationConfigObject.inputSelector);
+    const inputList = form.querySelectorAll(validationConfig.inputSelector);
 
     inputList.forEach((input) => {
-      input.addEventListener('input', () => isValid(form, input));
+      input.addEventListener('input', () => isValid(form, input, validationConfig));
     })
   })
 }
 
 
 // Функция проверки валидации
-const isValid = (formElement, inputElement) => {
+const isValid = (formElement, inputElement, validationConfig) => {
   const errorSpanElement = formElement.querySelector(`.${inputElement.id}-error`);
 
   if (inputElement.validity.patternMismatch) {
@@ -28,13 +28,13 @@ const isValid = (formElement, inputElement) => {
       hideInputError(formElement, inputElement);
     }
   }
-  toggleButtonState(formElement);
+  toggleButtonState(formElement, validationConfig);
 }
 
 //Функция переключения состояния кнопки Submit
-const toggleButtonState = (formElement) => {
-  const inputList = Array.from(formElement.querySelectorAll('.popup__input'));
-  const submitButton = formElement.querySelector('.popup__button');
+const toggleButtonState = (formElement, validationConfig) => {
+  const inputList = Array.from(formElement.querySelectorAll(validationConfig.inputSelector));
+  const submitButton = formElement.querySelector(validationConfig.submitButtonSelector);
 
   if (inputList.every(inputElement => inputElement.validity.valid)) {
     submitButton.setAttribute('aria-disabled', 'false');
@@ -65,17 +65,14 @@ const hideInputError = (formElement, inputElement) => {
 }
 
 // Функция очистки ошибок валидации и управления активности кнопки
-const clearValidation = (formElement, validationConfigObject) => {
-  const submitButton = formElement.querySelector(validationConfigObject.submitButtonSelector);
-  const inputList = formElement.querySelectorAll(validationConfigObject.inputSelector);
+const clearValidation = (formElement, validationConfig) => {
+  // const submitButton = formElement.querySelector(validationConfig.submitButtonSelector);
+  const inputList = formElement.querySelectorAll(validationConfig.inputSelector);
 
   inputList.forEach((inputElement) => {
     hideInputError(formElement, inputElement);
   })
-  
-  submitButton.setAttribute('aria-disabled', 'true');
-  submitButton.setAttribute('disabled', true);
-  submitButton.classList.add(validationConfigObject.inactiveButtonClass);
+  toggleButtonState(formElement, validationConfig);
 }
 
 export { enableValidation, showInputError, hideInputError, clearValidation, toggleButtonState };

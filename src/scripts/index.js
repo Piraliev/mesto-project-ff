@@ -1,8 +1,8 @@
 import '../pages/index.css';
-import { createCard, deleteCard, switchLikeOnCard } from './card.js';
+import { createCard, deleteCard, likeCardHandler } from './card.js';
 import { openModal, closeModal, handleEscKeyUp, handleOverlayClick } from './modal.js';
 import { enableValidation, showInputError, hideInputError, clearValidation } from './validation.js';
-import { getUserProfile, getCardList, updateUserProfile, uploadNewCard, uploadNewAvatar } from './api.js'
+import { getUserProfile, getCardList, updateUserProfile, uploadNewCard, uploadNewAvatar, handleResponseError } from './api.js'
 
 // @todo: DOM узлы
 const cardPlace = document.querySelector('.places__list');
@@ -27,7 +27,7 @@ const avatarButton = document.querySelector('.profile__image-button');
 const editProfileButton = document.querySelector('.profile__edit-button');
 const addCardButton = document.querySelector('.profile__add-button');
 const profileImage = document.querySelector('.profile__image');
-const validationConfigObject = {
+const validationConfig = {
   formSelector: '.popup__form',
   inputSelector: '.popup__input',
   submitButtonSelector: '.popup__button',
@@ -42,7 +42,7 @@ const renderCards = (cardList, userProfile) => {
   const userId = userProfile._id;
   
   const cardsList = cardList.map((element) => {  
-    return createCard(element, openImagePopupHandler, switchLikeOnCard, userId)
+    return createCard(element, openImagePopupHandler, likeCardHandler, userId)
   });
 
   cardPlace.replaceChildren();
@@ -51,11 +51,19 @@ const renderCards = (cardList, userProfile) => {
   })
 }
 
+popups.forEach((popup) => {
+  handleOverlayClick(popup);
+  const closeButton = popup.querySelector('.popup__close');
+  closeButton.addEventListener('click', () => closeModal(popup));
+});
+
+
+
 //Функция обработки открытия редактирования профиля
 const onEditProfileButtonClick = () => {
   openModal(popupTypeEdit);
-  clearValidation(formElementTypeEdit, validationConfigObject);
-
+  formElementTypeEdit.addEventListener('submit', onSaveProfileButtonClick);
+  clearValidation(formElementTypeEdit, validationConfig);
   const saveButton = popupTypeEdit.querySelector('.popup__button');
 
   saveButton.textContent = 'Сохранить';
@@ -72,13 +80,17 @@ const onSaveProfileButtonClick = async (event) => {
   const newAbout = aboutInput.value;
   const saveButton = popupTypeEdit.querySelector('.popup__button');
 
-  saveButton.textContent = 'Сохранение...';
-
-  const updateUserProfileResponse = await updateUserProfile(newName, newAbout); //обновляем данные на сервере
-  profileName.textContent = updateUserProfileResponse.name;
-  profileDescription.textContent = updateUserProfileResponse.about;
-  
-  closeModal(popupTypeEdit);
+  try {
+    const updateUserProfileResponse = await updateUserProfile(newName, newAbout)
+    profileName.textContent = updateUserProfileResponse.name;
+    profileDescription.textContent = updateUserProfileResponse.about;
+    formElementTypeEdit.removeEventListener('submit', onSaveProfileButtonClick);
+    closeModal(popupTypeEdit);
+  } catch {
+    handleResponseError(err)
+  } finally {
+    saveButton.textContent = 'Сохранение...';
+  }
 }
 
 //Функция обработки открытия фотографии
@@ -98,11 +110,10 @@ const openImagePopupHandler = (event) => {
 //Функция открытия формы добавления новой карточки
 const onAddNewCardButtonClick = () => {
   openModal(popupTypeNewCard);
+  formElementNewCard.addEventListener('submit', onSaveNewCardButtonClick);
   const saveButton = popupTypeNewCard.querySelector('.popup__button');
-
   saveButton.textContent = 'Создать';
-
-  clearValidation(formElementNewCard, validationConfigObject);
+  clearValidation(formElementNewCard, validationConfig);
   formElementNewCard.reset();
 }
 
@@ -113,16 +124,21 @@ const onSaveNewCardButtonClick = async (event) => {
   const titleInputValue = inputTitleAddNewCard.value;
   const urlInputValue = inputUrlAddNewCard.value;
   const saveButton = popupTypeNewCard.querySelector('.popup__button');
-
   saveButton.textContent = 'Сохранение...';
+  saveButton.setAttribute('aria-disabled', 'true');
+  saveButton.setAttribute('disabled', true);
+  try {
+    const newCard = await uploadNewCard(titleInputValue, urlInputValue);
+    const userId = newCard.owner._id;
 
-  const newCard = await uploadNewCard(titleInputValue, urlInputValue);
-  const userId = newCard.owner._id;
-
-  cardPlace.prepend(createCard(newCard, openImagePopupHandler, switchLikeOnCard, userId));
-  formElementNewCard.reset();
-  clearValidation(formElementNewCard, validationConfigObject);
-  closeModal(popupTypeNewCard);
+    cardPlace.prepend(createCard(newCard, openImagePopupHandler, likeCardHandler, userId));
+    formElementNewCard.reset();
+    clearValidation(formElementNewCard, validationConfig);
+    formElementNewCard.removeEventListener('submit', onSaveNewCardButtonClick);
+    closeModal(popupTypeNewCard);
+  } catch {
+    handleResponseError(err);
+  }
 }
 
 //Функция сохранения нового аватара
@@ -130,35 +146,30 @@ const onSaveNewAvatarButtonClick = async (event) => {
   event.preventDefault();
 
   const newAvatarLink = inputUrlUpdateAvatar.value;
-  const uploadNewAvatarResponse = await uploadNewAvatar(newAvatarLink);
   const saveButton = popupUpdateAvatar.querySelector('.popup__button');
-
   saveButton.textContent = 'Сохранение...';
+  try {
+    const uploadNewAvatarResponse = await uploadNewAvatar(newAvatarLink);
 
-  const avatarLink = uploadNewAvatarResponse.avatar;
-  profileImage.setAttribute('style', `background-image: url(${avatarLink})`);
-  formElementNewAvatar.reset();
-  clearValidation(formElementNewAvatar, validationConfigObject);
-  closeModal(popupUpdateAvatar);
+    const avatarLink = uploadNewAvatarResponse.avatar;
+    profileImage.setAttribute('style', `background-image: url(${avatarLink})`);
+    formElementNewAvatar.reset();
+    clearValidation(formElementNewAvatar, validationConfig);
+    formElementNewAvatar.removeEventListener('submit', onSaveNewAvatarButtonClick);
+    closeModal(popupUpdateAvatar);
+  } catch {
+    handleResponseError(err);
+  } 
 }
-
-popups.forEach((popup) => {
-  handleOverlayClick(popup);
-  const closeButton = popup.querySelector('.popup__close');
-  closeButton.addEventListener('click', () => closeModal(popup));
-});
-
-formElementTypeEdit.addEventListener('submit', onSaveProfileButtonClick, {once: true});
-formElementNewCard.addEventListener('submit', onSaveNewCardButtonClick, {once: true});
-formElementNewAvatar.addEventListener('submit', onSaveNewAvatarButtonClick, {once: true});
  
 editProfileButton.addEventListener('click', onEditProfileButtonClick);
 addCardButton.addEventListener('click', onAddNewCardButtonClick);
 avatarButton.addEventListener('click', () => {
   const saveButton = popupUpdateAvatar.querySelector('.popup__button');
-  clearValidation(formElementNewAvatar, validationConfigObject);
+  clearValidation(formElementNewAvatar, validationConfig);
   saveButton.textContent = 'Сохранить';
   openModal(popupUpdateAvatar);
+  formElementNewAvatar.addEventListener('submit', onSaveNewAvatarButtonClick);
 })
 
 const popupList = document.querySelectorAll('.popup');
@@ -174,9 +185,7 @@ Promise.all([getUserProfile(), getCardList()])
     
     renderCards(resCardList, resUserProfile);
   })
-  .catch((error) => {
-    console.log(error);
-  })
+  .catch(err => handleResponseError(err))
   
-enableValidation(validationConfigObject);
+enableValidation(validationConfig);
   
