@@ -11,21 +11,20 @@ const enableValidation = (validationConfig) => {
   })
 }
 
-
 // Функция проверки валидации
 const isValid = (formElement, inputElement, validationConfig) => {
   const errorSpanElement = formElement.querySelector(`.${inputElement.id}-error`);
 
   if (inputElement.validity.patternMismatch) {
     errorSpanElement.textContent = inputElement.dataset.errorMessage;
-    showInputError(formElement, inputElement);
+    showInputError(formElement, inputElement, validationConfig);
   } else {
     if (!inputElement.validity.valid) {
       errorSpanElement.textContent = inputElement.validationMessage;
-      showInputError(formElement, inputElement);
+      showInputError(formElement, inputElement, validationConfig);
       
     } else {
-      hideInputError(formElement, inputElement);
+      hideInputError(formElement, inputElement, validationConfig); 
     }
   }
   toggleButtonState(formElement, validationConfig);
@@ -39,38 +38,37 @@ const toggleButtonState = (formElement, validationConfig) => {
   if (inputList.every(inputElement => inputElement.validity.valid)) {
     submitButton.setAttribute('aria-disabled', 'false');
     submitButton.removeAttribute('disabled', true);
-    submitButton.classList.remove('popup__button_disabled');
+    submitButton.classList.remove(validationConfig.inactiveButtonClass);
   } else {
     submitButton.setAttribute('aria-disabled', 'true');
     submitButton.setAttribute('disabled', true);
-    submitButton.classList.add('popup__button_disabled');
+    submitButton.classList.add(validationConfig.inactiveButtonClass);
   }
 }
 
 //Функция вывода сообщения об ошибке
-const showInputError = (formElement, inputElement) => {
+const showInputError = (formElement, inputElement, validationConfig) => {
   const errorSpanElement = formElement.querySelector(`.${inputElement.id}-error`);
 
-  errorSpanElement.classList.add('popup__error_visible');
-  inputElement.classList.add('popup__input_type_error');
+  errorSpanElement.classList.add(validationConfig.errorClass);
+  inputElement.classList.add(validationConfig.inputErrorClass);
 }
 
 //Функция скрытия сообщения об ошибке
-const hideInputError = (formElement, inputElement) => {
+const hideInputError = (formElement, inputElement, validationConfig) => {
   const errorSpanElement = formElement.querySelector(`.${inputElement.id}-error`);
 
   errorSpanElement.textContent = '';
-  errorSpanElement.classList.remove('popup__error_visible');
-  inputElement.classList.remove('popup__input_type_error');
+  errorSpanElement.classList.remove(validationConfig.errorClass);
+  inputElement.classList.remove(validationConfig.inputErrorClass);
 }
 
 // Функция очистки ошибок валидации и управления активности кнопки
 const clearValidation = (formElement, validationConfig) => {
-  // const submitButton = formElement.querySelector(validationConfig.submitButtonSelector);
   const inputList = formElement.querySelectorAll(validationConfig.inputSelector);
 
   inputList.forEach((inputElement) => {
-    hideInputError(formElement, inputElement);
+    hideInputError(formElement, inputElement, validationConfig);
   })
   toggleButtonState(formElement, validationConfig);
 }

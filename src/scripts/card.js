@@ -1,16 +1,14 @@
-import { openModal, closeModal } from "./modal.js";
-import { putLike, takeOffLike, deleteCardFromServer, handleResponseError } from "./api.js";
+import { putLike, takeOffLike, handleResponseError } from "./api.js";
 
 const cardTemplate = document.querySelector('#card-template');
-const cardDeleteModal = document.querySelector('.popup_delete-card');
-const submitModalButton = cardDeleteModal.querySelector('.popup__button');
 const cardTemplateContent = cardTemplate.content;
 
 // @todo: Функция создания карточки
-function createCard(element, openImageHandler, likeCardHandler, userId) {
+function createCard(element, openImageHandler, likeCardHandler, deleteCardHandler, userId) {
   const cardLikeList = element.likes;
   const cardTitle = element.name;
   const cardLink = element.link;
+  const cardId = element._id;
   const cardElement = cardTemplateContent.querySelector('.card').cloneNode(true);
   const deleteButton = cardElement.querySelector('.card__delete-button');
   const cardImage = cardElement.querySelector('.card__image');
@@ -37,33 +35,12 @@ function createCard(element, openImageHandler, likeCardHandler, userId) {
   cardImage.setAttribute('alt', `Фотография - ${cardTitle}`);
   likesCount.textContent = element.likes.length;
 
-  deleteButton.addEventListener('click', () =>  {
-    openModal(cardDeleteModal);
-    submitModalButton.textContent = 'Да';
-    cardDeleteModal.onsubmit = (event) => deleteCard(event, element, cardElement);
-  });
-
+  deleteButton.addEventListener('click', (event) => deleteCardHandler(event, cardId, cardElement));
   cardImage.addEventListener('click', openImageHandler);
-  likeButton.addEventListener('mouseup', (event) => {
-    likeCardHandler(event, element, likesCount);
-  });
+  likeButton.addEventListener('mouseup', (event) => likeCardHandler(event, element, likesCount));
+  ;
 
   return cardElement;
-}
-
-// @todo: Функция удаления карточки
-function deleteCard(event, card, cardElement) {
-  event.preventDefault();
-
-  deleteCardFromServer(card._id)
-    .then(() => {
-      closeModal(cardDeleteModal);
-      cardElement.remove();
-    })
-    .catch(err => handleResponseError(err))
-    .finally(() => {
-      submitModalButton.textContent = 'Удаление...';
-    })
 }
 
 //Функция управления лайком карточки
@@ -87,4 +64,4 @@ const likeCardHandler = (event, card, likesCount) => {
   }
 }
 
-export { createCard, deleteCard, likeCardHandler };
+export { createCard, likeCardHandler };

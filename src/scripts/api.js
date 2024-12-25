@@ -16,7 +16,8 @@ export function getResponseData(res) {
 
 //Функция обработки ошибки от сервера
 export function handleResponseError(err) {
-  return console.log(`Ошибка...: ${err}`);
+  console.log(`Запрос вернул: ${err}`);
+  return alert(`При запросе к серверу произошла ${err}, проверьте параметры запроса`);
 }
 
 //Запрос для получения данных пользователя
@@ -24,7 +25,7 @@ export const getUserProfile = () => {
   return fetch(`${config.baseUrl}/users/me`, {
     headers: config.headers
   })
-  .then(res => getResponseData(res));
+  .then(res => getResponseData(res));  
 }
 
 //Запрос получения списка карточек от сервера
@@ -45,7 +46,9 @@ export const updateUserProfile = (newName, newAbout) => {
       about: newAbout
     })
   })
-  .then(res => getResponseData(res));
+  .then(res => getResponseData(res))
+  .catch(err => err.json())
+  .catch(err => console.log(err))
 }
 
 //Отправка новой карточки на сервер

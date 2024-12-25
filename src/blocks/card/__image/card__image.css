@@ -2,8 +2,9 @@
   height: 282px;
   object-fit: cover;
   width: 100%;
+  position: relative;
 }
 
 .card__image:hover {
-  cursor: pointer;
+  cursor: zoom-in;
 }
